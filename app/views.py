@@ -1,25 +1,42 @@
-from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-import requests
+
+import time
 import random
+import requests
 
-CALLBACK_URL = "http://0.0.0.0:8000/stocks"
+from concurrent import futures
 
-def get_random_status():
-    return bool(random.getrandbits(1))
+CALLBACK_URL = "http://127.0.0.1:8000/async"
 
-def send_status(pk, status):
-    nurl = str(CALLBACK_URL + str(pk) + '/put/')
-    answer = {"is_growing": status}
-    requests.put(nurl, data=answer, timeout=3)
+executor = futures.ThreadPoolExecutor(max_workers=1)
+
+def get_random_status(id):
+    time.sleep(5)
+    return {
+        "id": id,
+        "status": bool(random.getrandbits(1)),
+    }
+
+def status_callback(task):
+    try:
+        result = task.result()
+        print(result)
+    except futures._base.CancelledError:
+        return
+    
+    nurl = str(CALLBACK_URL + "/" + str(result["id"]))
+    answer = {"id": result["id"], "status": result["status"]}
+    requests.post(nurl, json=answer, timeout=3)
 
 @api_view(['POST'])
 def set_status(request):
-    if "pk" in request.data.keys():
-        id = request.data["pk"]
-        stat = get_random_status()
-        send_status(id, stat)
+    if "id" in request.data.keys():   
+        id = request.data["id"]        
+
+        task = executor.submit(get_random_status, id)
+        task.add_done_callback(status_callback)        
         return Response(status=status.HTTP_200_OK)
+    
     return Response(status=status.HTTP_400_BAD_REQUEST)
