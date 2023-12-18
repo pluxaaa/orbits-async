@@ -5,10 +5,10 @@ from rest_framework import status
 import time
 import random
 import requests
-
 from concurrent import futures
 
 CALLBACK_URL = "http://127.0.0.1:8000/async"
+AUTH_KEY = "secret-async-orbits"
 
 executor = futures.ThreadPoolExecutor(max_workers=1)
 
@@ -32,6 +32,9 @@ def status_callback(task):
 
 @api_view(['POST'])
 def set_status(request):
+    if "Authorization" not in request.headers or request.headers["Authorization"] != AUTH_KEY:
+        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
     if "id" in request.data.keys():   
         id = request.data["id"]        
 
