@@ -39,7 +39,7 @@ def set_status(request):
         id = request.data["id"]        
 
         task = executor.submit(get_random_status, id)
-        task.add_done_callback(status_callback)        
+        task.add_done_callback(status_callback)
         return Response(status=status.HTTP_200_OK)
     
     return Response(status=status.HTTP_400_BAD_REQUEST)
