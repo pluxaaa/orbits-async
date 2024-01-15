@@ -7,7 +7,7 @@ import random
 import requests
 from concurrent import futures
 
-CALLBACK_URL = "http://127.0.0.1:8000/transfer_requests/calculate_success"
+CALLBACK_URL = "http://127.0.0.1:8000/transfer_requests/get_success"
 AUTH_KEY = "secret-async-orbits"
 
 executor = futures.ThreadPoolExecutor(max_workers=1)
