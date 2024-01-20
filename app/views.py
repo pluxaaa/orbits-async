@@ -28,13 +28,15 @@ def status_callback(task):
     
     nurl = str(CALLBACK_URL + "/" + str(result["id"]))
     answer = {"id": result["id"], "status": result["status"]}
-    requests.post(nurl, json=answer, timeout=3)
+
+    headers = {
+        'Authorization': AUTH_KEY
+    }
+    
+    requests.post(nurl, json=answer, headers=headers, timeout=3)
 
 @api_view(['POST'])
 def set_status(request):
-    if "Authorization" not in request.headers or request.headers["Authorization"] != AUTH_KEY:
-        return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
     if "id" in request.data.keys():   
         id = request.data["id"]        
 
